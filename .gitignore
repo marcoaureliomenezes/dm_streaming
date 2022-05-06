@@ -1,0 +1,9 @@
+TODO.md
+reset.sh
+start.sh
+stop.sh
+restart.sh
+zaux.py
+venv/
+__pycache__
+*.sh
