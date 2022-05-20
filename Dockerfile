@@ -12,9 +12,10 @@ RUN pip install --upgrade "pip==20.2.4" && \
     pip install yahooquery==2.2.15
 
 
-RUN pip install rand-engine==0.0.2
-
 COPY ./src .
+COPY ./dist ./dist
+
+RUN pip install ./dist/rand_engine-0.0.2.tar.gz
 
 CMD ["sleep", "infinity"]
 

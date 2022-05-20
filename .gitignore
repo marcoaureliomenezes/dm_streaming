@@ -7,3 +7,4 @@ zaux.py
 venv/
 __pycache__
 *.sh
+dist/
