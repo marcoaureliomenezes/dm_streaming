@@ -3,7 +3,7 @@ from utils import  stream_generic_data
 import os, hashlib, sys
 from sqlalchemy import create_engine
 import pandas as pd
-
+from functools import reduce
 
 def get_client_hashes(mysql_args):
     host, user, pwd, _, db = [mysql_args[k] for k in ["host","user", "password","port", "db"]]
@@ -24,12 +24,19 @@ def extract_not_required_parms(parms, required):
     return {parm: parms[parm] for parm in parms if parm not in required}
 
 
-if __name__ == '__main__':
+def main(parms, required_parms, mysql_args, kafka_args):
+    if not contains_required_parm(parms, required_parms):
+        return f"{reduce(lambda a, b: f'{a}, {b}', required_parms)} are required parameters"
+    frequency, method, kafka_args["topic"] = \
+                                (parms.get('freq'), globals().get(parms['method']), parms.get('topic'))
+    method_args = extract_not_required_parms(parms, required_parms)
+    method_args['clients'] = get_client_hashes(mysql_args)
+    stream_generic_data(kafka_args=kafka_args, method=method, method_args=method_args, freq=int(frequency))
 
+if __name__ == '__main__':
     kafka_args = { 
-                    "host": os.getenv('KAFKA_SERVICE'),
-                    "port": os.getenv('KAFKA_PORT'),
-                    "topic": os.getenv('KAFKA_TOPIC')}
+            "host": os.getenv('KAFKA_SERVICE'),"port": os.getenv('KAFKA_PORT')}
+
     mysql_args = {
                     "host": os.getenv('MYSQL_SERVICE'), 
                     "user": os.getenv('MYSQL_USER'),
@@ -38,23 +45,8 @@ if __name__ == '__main__':
                     "db": os.getenv('MYSQL_DB'),
                     "table": os.getenv('MYSQL_TABLE')
     }
-    client_hashes = get_client_hashes(mysql_args)
+    required_parms = ['freq', 'method', 'topic']
     parms = {parm.split("=")[0]: parm.split("=")[1]  
                         for parm in sys.argv if len(parm.split("=")) > 1}
-             
-    if not contains_required_parm(parms, ['freq', 'method']):
-        print("'freq' and 'method' are required parameters")
-    else:
-        frequency, method = (parms.get('freq'), locals().get(parms['method']))
-
-        method_args = extract_not_required_parms(parms, ['freq', 'method'])
-        method_args['clients'] = get_client_hashes(mysql_args)
-        print(method_args)
-        stream_generic_data(
-                        kafka_args=kafka_args,
-                        method=method,
-                        method_args=method_args,
-                        freq=int(frequency)
-        )
-
-    # {'clients': client_hashes, 'counterparties': client_hashes}
+    result = main(parms, required_parms, mysql_args, kafka_args)
+    print(result)

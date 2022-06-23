@@ -25,7 +25,7 @@ def gen_pix_operation(kwargs):
         "operacao": f"{gen_str_num(10)}-{gen_str_num(2)}",
         "cliente": gen_distinct(distinct=kwargs['clients']),
         "contraparte": gen_distinct(distinct=kwargs['clients']),
-        "valor": gen_money(1, 10**5),
+        "valor": round(10 * randint(0,99) + randint(0,99)/100, 2),
         "timestamp_op": get_timestamp_op(),
     }
 
@@ -37,7 +37,7 @@ def gen_bill_operation(kwargs):
         "operacao": f"{gen_str_num(10)}-{gen_str_num(2)}",
         "cliente": gen_distinct(distinct=kwargs['clients']),
         "contraparte": gen_distinct(distinct=kwargs['clients']),
-        "valor": gen_money(1, 10**4),
+        "valor": round(10 * randint(0,99) + randint(0,99)/100, 2),
         "data_emissao": data_inicio,
         "data_vencimento": data_vencimento,
         "timestamp_op" : get_timestamp_op()
